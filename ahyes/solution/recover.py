@@ -1,13 +1,12 @@
 #-*- coding:utf-8 -*-
 
-from z3.z3 import *
+from z3 import *
 
 from aes import AES
 
 encflag = "".join("81 74 45 2d f0 56 70 7d 15 82 d8 23 c2 e3 a2 d2".split()).decode("hex")
 # k11
 knownsubkey = "d044e824a4bdc5eb143c74fbc0491c64".decode("hex")
-# knownsubkey = "".join("c9 7d bc b3 fc 4b 8b 8b 9d 29 e8 ef f8 4f 8f 87".split()).decode("hex")
 knownsubkey = map(ord, knownsubkey)
 base = 16*11
 
