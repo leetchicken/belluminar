@@ -1,0 +1,49 @@
+# 100percent
+
+## Description
+
+---------- DESCRIPTION -----------
+100%, 100 points
+(PWN: snk)
+
+100 Percent, Inc. is running a Pwn2Flag contest for their latest invention: ASLR binary ('A Shit-Load Randomized™ binary').
+Idea is simple: when there are no two identical binaries in the world, how would the attacker know where to jump?
+They've protected a stack BoF vulnerable binary that uses off-the-shelf Acrobat Reader DLL — those who can ROP their way through get the flag.
+
+They claim 100% protection, so to disprove them you just need to submit a single payload that pwns 100 of their randomized binaries in a row.
+
+Dare to take part? http://11.22.33.44/
+Your auth token: ___________________
+----------------------------------
+
+You don't need to give teams anything more than the link and auth token. They will get everything they need from there.
+/!\ Needs personal auth tokens to be distributed to teams. See below
+
+Handing the mic over to Snk:
+
+This challange shows one interesting problem: how to perform reliable exploitation across different versions of software. We minimize a binary and made focus only on exploitation. Binary loads AcroRd32.dll and allows stack overflow but every time we give different version of AcroRd32.dll. Total of 7 versions. All what we had downloaded from Adobe web site for 11 version of Acrobat Reader.
+So main idea to find gadgets that are common or similar in all libraries and construct universal ROP what works on all versions.
+
+
+Vulnbox with flag: http://big.vos.uz/100percent_win10.ova 
+(dhcp, admin user is 'root' without password; auto-login is required to work)
+Flag: CTF{wh0a_H3ll!_AppJailLaunch3r_L00k5_l1KE_t3h_M0s7_buGgy_p1ec3_0f_s0ftw4re_ev4h_Gl4d_i_f1nalLY_h4nd3d_0ver_th1s_chaLL}
+
+/!\ In case anything goes wrong (something is stuck, etc), a VM reboot should fix everything.
+
+You can change the flag in config.php
+Also inside config.php there are TEAM TOKENS, teams are recognized by those. Keep those secret from opponents.
+You can use the tokens pre-loaded, or re-generate them and change inside config.php — they should consist of 20 lowercase letters.
+Keep in mind that team with token "author" can't get the flag.
+
+What it does internally, so you guys can debug better (everything is in C:\100percent\):
+1. When you power on the VM, 'root' user is auto-logged in and start_daemon.cmd is run. That starts the daemon that will evaluate teams' payloads (daemon/daemon.php)
+2. Teams interact with the daemon via web interface (apache on port 80, serving web/): they can upload their payload, view progress, and download result archive once it is evaluated. Result archive contains used binary versions (.exe and AcroRd32.dll), and log.txt with evaluation logs that will help teams debug their payload. If they pwn 100 binaries out of 100, result archive also contains flag.txt
+3. Daemon evaluates one submission at a time, and runs one binary simultaneously. We've been getting terrible results when trying to run several processes simultaneously
+4. There are 100 steps: if one isn't pwned by the team's submission, it's considered a fail. To eliminate AppJailLauncher random bugs, every step is tried 5 times until it's pwned. To get flag, teams need to complete 100 steps
+5. Before each step, a random .exe is built from *.o files in daemon/stub/; also a random daemon/stub/AcroRd32_*.dll is used - one out of seven possible. Random token.txt is put nearby, containing 32 hex characters. That's the file teams have to read with their payload
+6. The .exe is being run with AppJailLauncher (the most crappy piece of CTF software ever ™)
+7. Daemon starts the jail, connects to socket, sends the payload, waits for 10 seconds, kills everything. Checks if stdout output contains token.txt contents. If yes, step is passed
+8. At steps 25 and 75 the VM is rebooted by the daemon to give new addresses to system libraries (kernel32.dll etc). That prevents teams from cheating by using kernel32 gadgets and guessing its fixed base address
+9. Pass 100 steps — you get flag. Pass less steps — you get the binaries from the failed step
+
